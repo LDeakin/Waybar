@@ -315,21 +315,20 @@ Task::Task(const Json::Value &window, const Taskbar &taskbar): taskbar_(taskbar)
 
   button.set_relief(Gtk::RELIEF_NONE);
   if (!config["disable-click"].asBool()) {
-    // const auto id = window["id"].asUInt64();
-    // button.signal_pressed().connect([=] {
-    //   try {
-    //     // {"Action":{"FocusWorkspace":{"reference":{"Id":1}}}}
-    //     Json::Value request(Json::objectValue);
-    //     auto &action = (request["Action"] = Json::Value(Json::objectValue));
-    //     auto &focusWorkspace = (action["FocusWorkspace"] = Json::Value(Json::objectValue));
-    //     auto &reference = (focusWorkspace["reference"] = Json::Value(Json::objectValue));
-    //     reference["Id"] = id;
+    const auto id = window["id"].asUInt64();
+    button.signal_pressed().connect([=] {
+      try {
+        // {"Action":{"FocusWindow":{"id":1}}}
+        Json::Value request(Json::objectValue);
+        auto &action = (request["Action"] = Json::Value(Json::objectValue));
+        auto &focusWorkspace = (action["FocusWindow"] = Json::Value(Json::objectValue));
+        focusWorkspace["id"] = id;
 
-    //     IPC::send(request);
-    //   } catch (const std::exception &e) {
-    //     spdlog::error("Error switching workspace: {}", e.what());
-    //   }
-    // });
+        IPC::send(request);
+      } catch (const std::exception &e) {
+        spdlog::error("Error switching window: {}", e.what());
+      }
+    });
   }
 
   if (window["app_id"]) {
